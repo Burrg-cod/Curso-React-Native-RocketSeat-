@@ -1,13 +1,20 @@
-import { Text, View, Pressable } from "react-native";
+import { Text, View, Pressable, PressableProps } from "react-native";
 import { styles } from "./styles";
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/styles/color";
-export default function Category() {
+import { resetToDefaults } from "expo-router/testing-library";
+
+type Props = PressableProps & {
+  name: string;
+  icon: React.ComponentProps<typeof MaterialIcons>["name"];
+};
+
+export default function Category({ name, icon, ...rest }: Props) {
   return (
     <View style={styles.container}>
-      <Pressable style={styles.container} onPress={() => {}}>
-        <MaterialIcons name="code" size={16} color={colors.gray[400]} />
-        <Text style={styles.name}>Projetos</Text>
+      <Pressable style={styles.container} {...rest}>
+        <MaterialIcons name={icon} size={18} color={colors.gray[400]} />
+        <Text style={styles.name}>{name}</Text>
       </Pressable>
     </View>
   );
