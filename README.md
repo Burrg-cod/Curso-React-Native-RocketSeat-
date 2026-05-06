@@ -1,2 +1,2 @@
 # Curso-React-Native-RocketSeat-
-curso/Projeto de React Native RocketSeat
+Curso/Projeto de React Native RocketSeat
