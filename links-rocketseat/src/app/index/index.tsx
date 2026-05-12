@@ -12,6 +12,7 @@ import { styles } from "./styles";
 import { colors } from "@/styles/color";
 
 import { Link } from "@/components/link";
+import { Option } from "@/components/options";
 import Categories from "@/components/categories";
 import React from "react";
 
@@ -56,6 +57,10 @@ export default function Index() {
             <Text style={styles.modalLinkName}>GitHub</Text>
 
             <Text style={styles.modalUrl}>https://github.com/Burrg-cod</Text>
+            <View style={styles.modalFooter}>
+              <Option name="Excluir" icon="delete" variant="secondary" />
+              <Option name="Abrir" icon="language" />
+            </View>
           </View>
         </View>
       </Modal>
