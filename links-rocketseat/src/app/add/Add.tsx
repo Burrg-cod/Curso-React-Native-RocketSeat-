@@ -3,10 +3,17 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { colors } from "@/styles/color";
 import { router } from "expo-router";
-
+import Input from "@/components/input";
 import Categories from "@/components/categories";
-
+import { Button } from "@/components/button";
+import { useState } from "react";
 export default function Add() {
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
+
+  function handleAdd() {
+    console.log("Adicionar link", { name, url });
+  }
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -22,6 +29,11 @@ export default function Add() {
       </View>
       <Text style={styles.label}>Selecione uma categoria</Text>
       <Categories />
+      <View style={styles.form}>
+        <Input placeholder="Nome" onChangeText={setName} autoCorrect={false} />
+        <Input placeholder="URL" onChangeText={setUrl} autoCorrect={false} />
+        <Button title="Adicionar" onPress={handleAdd} />
+      </View>
     </View>
   );
 }
