@@ -6,6 +6,7 @@ import {
   FlatList,
   Modal,
   Alert,
+  Linking,
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,7 +20,7 @@ import { Option } from "@/components/options";
 import Categories from "@/components/categories";
 import React from "react";
 import { categories } from "@/utils/categories";
-import { linkStorage, LinkStorage } from "@/storage/link-storage";
+import { linkStorage, LinkStorage, remove } from "@/storage/link-storage";
 
 export default function Index() {
   const [showModal, setShowModal] = useState(false);
@@ -43,6 +44,40 @@ export default function Index() {
     setShowModal(true);
     setLink(selected);
   }
+
+  async function linkRemove() {
+    try {
+      await LinkStorage.remove(link.id);
+      setShowModal(false);
+      getLinks();
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível excluir o link");
+      console.log(error);
+    }
+  }
+
+  async function handleRemove() {
+    Alert.alert("Excluir", "Deseja excluir este link?", [
+      {
+        style: "cancel",
+        text: "Não",
+      },
+      {
+        text: "Sim",
+        onPress: () => linkRemove(),
+      },
+    ]);
+  }
+
+  async function handleOpen() {
+    try {
+      await Linking.openURL(link.url);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível abrir o link");
+      console.log(error);
+    }
+  }
+
   useFocusEffect(
     useCallback(() => {
       getLinks();
@@ -93,8 +128,13 @@ export default function Index() {
 
             <Text style={styles.modalUrl}>{link.url}</Text>
             <View style={styles.modalFooter}>
-              <Option name="Excluir" icon="delete" variant="secondary" />
-              <Option name="Abrir" icon="language" />
+              <Option
+                name="Excluir"
+                icon="delete"
+                variant="secondary"
+                onPress={handleRemove}
+              />
+              <Option name="Abrir" icon="language" onPress={handleOpen} />
             </View>
           </View>
         </View>
