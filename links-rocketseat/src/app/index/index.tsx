@@ -5,10 +5,11 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
+  Alert,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 import { styles } from "./styles";
 import { colors } from "@/styles/color";
@@ -18,9 +19,31 @@ import { Option } from "@/components/options";
 import Categories from "@/components/categories";
 import React from "react";
 import { categories } from "@/utils/categories";
+import { linkStorage, LinkStorage } from "@/storage/link-storage";
 
 export default function Index() {
+  const [links, setLinks] = useState<linkStorage[]>([]);
   const [category, setCategory] = useState(categories[0].name);
+
+  async function getLinks() {
+    try {
+      const response = await LinkStorage.get();
+      const filteredLinks = response.filter(
+        (link) => link.category === category,
+      );
+      setLinks(filteredLinks);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível carregar os links");
+      console.log(error);
+    }
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      getLinks();
+    }, [category]),
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -35,12 +58,12 @@ export default function Index() {
       <Categories onChange={setCategory} selected={category} />
 
       <FlatList
-        data={["1", "2", "3"]}
-        keyExtractor={(item) => item}
-        renderItem={() => (
+        data={links}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
           <Link
-            name="GitHub"
-            url="https://github.com/Burrg-cod"
+            name={item.name}
+            url={item.url}
             onDetails={() => console.log("Detalhes do link")}
           />
         )}
