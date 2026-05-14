@@ -5,8 +5,12 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
+  Alert,
+  Linking,
 } from "react-native";
+import { useState, useEffect, useCallback } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
 
 import { styles } from "./styles";
 import { colors } from "@/styles/color";
@@ -15,38 +19,104 @@ import { Link } from "@/components/link";
 import { Option } from "@/components/options";
 import Categories from "@/components/categories";
 import React from "react";
+import { categories } from "@/utils/categories";
+import { linkStorage, LinkStorage, remove } from "@/storage/link-storage";
 
 export default function Index() {
+  const [showModal, setShowModal] = useState(false);
+  const [link, setLink] = useState<linkStorage>({} as linkStorage);
+  const [links, setLinks] = useState<linkStorage[]>([]);
+  const [category, setCategory] = useState(categories[0].name);
+
+  async function getLinks() {
+    try {
+      const response = await LinkStorage.get();
+      const filteredLinks = response.filter(
+        (link) => link.category === category,
+      );
+      setLinks(filteredLinks);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível carregar os links");
+      console.log(error);
+    }
+  }
+  function handleDetails(selected: linkStorage) {
+    setShowModal(true);
+    setLink(selected);
+  }
+
+  async function linkRemove() {
+    try {
+      await LinkStorage.remove(link.id);
+      setShowModal(false);
+      getLinks();
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível excluir o link");
+      console.log(error);
+    }
+  }
+
+  async function handleRemove() {
+    Alert.alert("Excluir", "Deseja excluir este link?", [
+      {
+        style: "cancel",
+        text: "Não",
+      },
+      {
+        text: "Sim",
+        onPress: () => linkRemove(),
+      },
+    ]);
+  }
+
+  async function handleOpen() {
+    try {
+      await Linking.openURL(link.url);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível abrir o link");
+      console.log(error);
+    }
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      getLinks();
+    }, [category]),
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Image source={require("@/assets/logo.png")} style={styles.logo} />
-        <TouchableOpacity activeOpacity={0.5}>
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={() => router.navigate("/add/Add")}
+        >
           <MaterialIcons name="add" size={32} color={colors.green[300]} />
         </TouchableOpacity>
       </View>
-      <Categories />
+      <Categories onChange={setCategory} selected={category} />
 
       <FlatList
-        data={["1", "2", "3"]}
-        keyExtractor={(item) => item}
-        renderItem={() => (
+        data={links}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
           <Link
-            name="GitHub"
-            url="https://github.com/Burrg-cod"
-            onDetails={() => console.log("Detalhes do link")}
+            name={item.name}
+            url={item.url}
+            onDetails={() => handleDetails(item)}
           />
         )}
         style={styles.links}
         contentContainerStyle={styles.linksContent}
         showsVerticalScrollIndicator={false}
       />
-      <Modal transparent visible={true}>
+      <Modal transparent visible={showModal} animationType="slide">
         <View style={styles.modal}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalCategory}>Curso</Text>
-              <TouchableOpacity>
+              <Text style={styles.modalCategory}>{link.category}</Text>
+              <TouchableOpacity onPress={() => setShowModal(false)}>
                 <MaterialIcons
                   name="close"
                   size={20}
@@ -54,12 +124,17 @@ export default function Index() {
                 />
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalLinkName}>GitHub</Text>
+            <Text style={styles.modalLinkName}>{link.name}</Text>
 
-            <Text style={styles.modalUrl}>https://github.com/Burrg-cod</Text>
+            <Text style={styles.modalUrl}>{link.url}</Text>
             <View style={styles.modalFooter}>
-              <Option name="Excluir" icon="delete" variant="secondary" />
-              <Option name="Abrir" icon="language" />
+              <Option
+                name="Excluir"
+                icon="delete"
+                variant="secondary"
+                onPress={handleRemove}
+              />
+              <Option name="Abrir" icon="language" onPress={handleOpen} />
             </View>
           </View>
         </View>
